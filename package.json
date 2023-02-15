@@ -1,0 +1,30 @@
+{
+  "name": "http-api-assignment-ii",
+  "version": "1.0.0",
+  "description": "API head and get requests",
+  "main": "./src/server.js",
+  "engines": {
+    "node": "18.13.0",
+    "npm": "7.0.0"
+  },
+  "scripts": {
+    "start": "node ./src/server.js",
+    "pretest": "eslint ./src --fix",
+    "test": "echo \"Tests complete\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JonStudentRIT/http-api-assignment-ii.git"
+  },
+  "author": "Jonathan Karcher",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/JonStudentRIT/http-api-assignment-ii/issues"
+  },
+  "homepage": "https://github.com/JonStudentRIT/http-api-assignment-ii#readme",
+  "devDependencies": {
+    "eslint": "^8.34.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-plugin-import": "^2.27.5"
+  }
+}
