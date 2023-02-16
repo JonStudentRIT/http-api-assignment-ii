@@ -1,9 +1,9 @@
 const fs = require('fs');
-// const { request } = require('http');
 
 const index = fs.readFileSync(`${__dirname}/../client/client.html`);
 const css = fs.readFileSync(`${__dirname}/../client/style.css`);
 
+// general html response function
 const wrightResponse = (response, fileType, type) => {
   response.writeHead(200, { 'Content-Type': type });
   response.write(fileType);
