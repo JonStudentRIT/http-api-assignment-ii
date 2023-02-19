@@ -5,7 +5,103 @@
   <link rel="stylesheet" type="text/css" href="/style.css">
   
   <script>
+  // assemble the on client display
+  const handleResponse = async (response) => {
+    const content = document.querySelector('#content');
+    const method = userForm.querySelector('#methodSelect').value;
 
+    // title is set by the status code sent back
+    switch (response.status) {
+      case 200:
+        content.innerHTML = `<b>Success</b>`;
+        break;
+      case 201:
+        content.innerHTML = `<b>Created</b>`;
+        break;
+      case 204:
+        content.innerHTML = `<b>Updated (No Content)</b>`;
+        break;
+      case 400:
+        content.innerHTML = `<b>Bad Request</b>`;
+        break;
+      case 404:
+        content.innerHTML = `<b>Not Found</b>`;
+        break;
+      default:
+        break;
+    }
+    // get the json back
+    let obj = await response.json();
+    // if the method was get
+    if(method !== 'head')
+      {
+        // if the status code was 200 and the method was get then we want to see the users data
+        if (response.status === 200) {
+          content.innerHTML += `<p>${JSON.stringify(obj.message)}</p>`;
+        // otherwise we wand the built in message
+        } else {
+          content.innerHTML += `<p>${obj.message}</p>`;
+        }
+      }
+    };
+
+    // process a post request
+    const sendPost = async (nameForm) => {
+
+      const nameAction = nameForm.getAttribute('action');
+      const nameMethod = nameForm.getAttribute('method');
+      
+      // get the parameters
+      const nameField = nameForm.querySelector('#nameField');
+      const ageField = nameForm.querySelector('#ageField');
+
+      // set up the parameters in a format that the url will accept
+      const formData = `name=${nameField.value}&age=${ageField.value}`;
+
+      // send a fetch request with the parameters
+      let response = await fetch(nameAction, {
+        method: nameMethod,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json',
+        },
+        body: formData,
+      });
+
+      handleResponse(response);
+    };
+
+    // runa basic fetch request
+    const sendFetch = async (url) => {
+
+      let response = await fetch(url);
+
+      handleResponse(response);
+    };
+
+    // on start
+    const init = () => {
+      // input fields
+      const nameForm = document.querySelector('#nameForm');
+      const userForm = document.querySelector('#userForm');
+      // buttons
+      const getUser = userForm.querySelector('input');
+      const postUser = nameForm.querySelectorAll('input')[2];
+
+      // put a click event on the get user button
+      getUser.addEventListener('click', e => {
+        e.preventDefault();
+        const url = userForm.querySelector('#urlField').value;
+        sendFetch(url);
+      });
+
+      // put a click event on the add user button
+      postUser.addEventListener('click', e => {
+        e.preventDefault();
+        sendPost(nameForm);
+      });
+    }
+    window.onload = init;
   </script>
 </head>
 <body>

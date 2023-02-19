@@ -1,12 +1,7 @@
-// object to hold users
-const users = {
-  users: {
-    // Jon: {
-    //   name: 'Jon',
-    //   age: 123,
-    // },
-  },
-};
+const query = require('querystring');
+
+// where users are stored
+const users = {};
 
 // general json response get function
 const respondJSON = (request, response, status, object) => {
@@ -24,42 +19,73 @@ const respondJSONMeta = (request, response, status) => {
 };
 
 // get list of users
-const getUsers = (request, response) => respondJSON(request, response, 200, users);
-// get list of users without the users
-const getUsersMeta = (request, response) => respondJSONMeta(request, response, 200);
-// update existing user
-const updateUser = (request, response, params) => {
-  // test changes
-  // users.users.Jon.name = 'Karcher';
-  // users.users.Jon.age = 321;
-  // const newUser = {
-  //     name: 'New User',
-  //     age: 456,
-  // }
-  // users.users['New User'] = newUser;
-  let responseJSON = {};
-  if (!params.name || !params.age) {
-    responseJSON = {
-      message: 'Name and age are both required.',
-      id: 'addUserMissingParams',
-    };
-    return respondJSON(request, response, 400, responseJSON);
-  }
-  //   if (users.users[params.name]) {
-  //     users.users[params.name].name = params.name;
-  //     users.users[params.name].age = params.age;
-  //   }
-
-  const newUser = {
-    name: params.name,
-    age: params.age,
-  };
-  users.users[params.name] = newUser;
-  responseJSON = users;
-
-  return respondJSON(request, response, 201, responseJSON);
+const getUsers = (request, response) => {
+  const responseJSON = { message: users };
+  return respondJSON(request, response, 200, responseJSON);
 };
-// page not found
+
+// get list of users without the users
+const getUsersMeta = (request, response) => {
+  respondJSON(request, response, 200);
+};
+
+// create or update existing user
+const updateUser = (request, response) => {
+  let body = [];
+
+  request.on('data', (chunk) => {
+    body.push(chunk);
+  });
+
+  request.on('end', () => {
+    const bodyString = Buffer.concat(body).toString();
+    body = query.parse(bodyString);
+
+    const responseJSON = {};
+
+    // start with a fail code
+    let responseCode = 400;
+
+    // if there are missing params
+    if (!body.name || !body.age) {
+      responseJSON.message = 'Name and age are both required.';
+      responseJSON.id = 'addUserMissingParams';
+      return respondJSON(request, response, responseCode, responseJSON);
+    }
+
+    // if the user already exists
+    if (users[body.name]) {
+      responseCode = 204;
+    } else {
+      responseCode = 201;
+      users[body.name] = {};
+    }
+
+    // overwright the curent values stored
+    users[body.name].name = body.name;
+    users[body.name].age = body.age;
+
+    if (responseCode === 201) {
+      responseJSON.message = 'Created Successfully';
+      return respondJSON(request, response, responseCode, responseJSON);
+    }
+
+    // if we havent gotten any data to update then just confirm the head update action
+    return respondJSONMeta(request, response, responseCode);
+  });
+};
+
+// testing if the element can handle being not found
+const notReal = (request, response) => {
+  const responseJSON = {
+    message: 'The page you are looking for was not found.',
+    id: 'notReal',
+  };
+
+  return respondJSON(request, response, 404, responseJSON);
+};
+
+// if the page really wasnt found
 const notFound = (request, response) => {
   const responseJSON = {
     message: 'The page you are looking for was not found.',
@@ -67,7 +93,8 @@ const notFound = (request, response) => {
   };
   respondJSON(request, response, 404, responseJSON);
 };
-// page not found without a message
+
+// if the not found page is tested by the head selection
 const notFoundMeta = (request, response) => {
   respondJSONMeta(request, response, 404);
 };
@@ -77,5 +104,6 @@ module.exports = {
   getUsersMeta,
   updateUser,
   notFound,
+  notReal,
   notFoundMeta,
 };
